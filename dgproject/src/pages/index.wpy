@@ -1,0 +1,247 @@
+<style lang="less">
+  .userinfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .userinfo-avatar {
+    width: 80rpx;
+    height: 80rpx;
+    border-radius: 50%;
+  }
+
+  .userinfo-nickname {
+    color: #aaa;
+  }
+  body{
+   
+        /*font-size: 20px;*/
+    }
+    .title{
+        padding:8px 10px;
+    }
+    .user_input {
+        display: inline-block;
+        width: 120px;
+    }
+    .modify {
+        font-size: 13px;
+        color: white;
+        border-radius: 2px;
+        padding: 3px 5px;
+        background-color: #00a3af;
+    }
+    .room_status{
+        color:#666;
+        text-align:center;
+        padding-top:10px;
+    }
+    .room_list{
+        display: -webkit-flex;
+        display:flex;
+        align-content: center;
+        padding:15px 10px;
+        font-size: 15px;
+        cursor:pointer;
+    }
+    .list_content{
+        display: -webkit-flex;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+    }
+    .status{
+        float:right;
+    }
+</style>
+<template>
+  <view class="container">
+   
+  
+    <view id="app" class="bg_wood">
+        <view class="title" v-colors>
+            <view><i class="iconfont icon-magnifier"></i>查询房间</view>
+            <view>你画我猜</view>
+            <label @tap="toCreateRoom">创建房间</label>
+        </view>
+        <view class="user">
+            <span class="profile"  >{{getusername}}</span>
+            <input bindinput="bindKeyInput" bindconfirm="modifyUser" class="user_input"  name="username" placeholder="请输入一个用户名"/>
+            <label class="modify" @tap="modifyUser">修改</label>
+        </view>
+        <view class="room_status" wx-if="{{allRoomInfos.length===0}}">并没有房间,请点击右上角创建房间</view>
+        <view class="room_status" wx-if="{{allRoomInfos.length>0}}">当前房间列表 : </view>
+        <ul>
+            <li wx:for="{{allRoomInfos}}" wx:for-item="roomInfo" wx:for-index="index"  class="room_list" @tap="toEnterRoom" data-item="{{roomInfo}}">
+                <span class="profile"  >{{roomInfo.owner[0]}}</span>
+                <view class="list_content">
+                    <label class="roomIn">进入房间 房主:{{roomInfo.owner}} </label>
+                    <p>房间人数:{{roomInfo[roomInfo.roomID].length}}/{{roomInfo.maxNumbers}}
+                        <span class="status">{{roomInfo.roomStatus}}</span>
+                    </p>
+                </view>            
+            </li>
+        </ul>
+    </view>
+
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { connect } from 'wepy-redux'
+  import Panel from '@/components/panel' // alias example
+  import Counter from 'counter' // alias example
+  import List from '../components/list' // aliasFields example
+  import moduleA from 'module-a' // aliasFields ignore module example
+  import Group from '../components/group'
+  import Toast from 'wepy-com-toast'
+  import testMixin from '../mixins/test';
+
+  let socket = null;
+
+
+  console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: 'home'
+    }
+    components = {
+    }
+
+    mixins = [testMixin]
+
+    data = {
+      fu: 0,
+      
+     allRoomInfos:[],
+      inputValue: "",//用于修改用户名
+           
+    }
+
+    computed = {
+      allRoomInfo () {
+        return wepy.$instance.globalData.allRoomInfo
+      },
+
+      getusername(){
+        if (!wepy.$instance.globalData.userInfo.username) {return ''}
+        return wepy.$instance.globalData.userInfo.username
+      },
+      getStatus(roomStatus){
+                switch (roomStatus) {
+                    case 'isReady':
+                        return '等待中..'
+                        break;
+                    case'isGaming':
+                        return '游戏中'
+                        break;
+                    default: 
+                        return '未知状态..'
+                        break;
+                }
+            }
+    }
+
+    
+    methods={
+    bindKeyInput:function(e) {
+    this.inputValue= e.detail.value
+    
+    }
+
+     
+  
+    }
+
+
+
+    onLoad() {
+      this.fu = wepy.$instance.globalData.fuck;
+      socket = wepy.$instance.globalData.ss;
+      console.log(socket);
+      let that = this;
+      socket.on('updateAllroomInfo',allRoomInfo=>{ // 随时监听是否有房间变动
+                allRoomInfo = JSON.parse(allRoomInfo);
+                wepy.$instance.globalData.allRoomInfo=allRoomInfo;
+                this.allRoomInfos=allRoomInfo;
+                console.log(allRoomInfo);
+                
+            that.$apply();
+                
+            })
+    }
+    
+    toCreateRoom() {
+                if (!wepy.$instance.globalData.userInfo.username) {
+                     wx.showToast({
+                                    title: '无名之辈不可创建房间',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                    return;
+                }
+                var roomInfo = { // 创建房间前 初始化信息 记得让服务器返回一个房间ID
+                    owner: wepy.$instance.globalData.userInfo.username,// 初始化房主
+                    roomID:null, // 初始化 等待服务器设置
+                    ownerIP:null,// 初始化 等待服务器设置
+                    roomStatus:'isReady', // 设置 ready gaming end undefined,
+                    maxNumbers:6, // 设置最多成员客户端负责初始化  服务端负责真正设置
+                    players: [],//{ player: this.userInfo.username, playerIP:'', }, // 初始化房主 添加到玩家成员里
+                };
+                socket.emit('createRoom', roomInfo); // 向服务器传达 createroom事件
+                socket.on('message',function(room){
+                    room = JSON.parse(room);
+                    console.log(room)
+                    wepy.$instance.globalData.roomID=room.roomID;
+                    wepy.navigateTo({
+                                    url: 'room'
+                                });
+                    // router.push({name:'room',params:{roomID:room.roomID}})
+                })
+            }
+
+     modifyUser() {
+                console.log("modifyUser");
+                if (this.inputValue.length > 8) {
+                    alert('用户名不能长于8个字');
+                    this.inputValue = "";
+                    return;
+                } else {
+                    if (this.inputValue.trim()) {
+                        console.log("inputValue",this.inputValue);
+                        wepy.$instance.globalData.userInfo.username = this.inputValue.trim();
+                    }
+                    
+                    console.log(wepy.$instance.globalData.userInfo.username);
+                }
+               
+            }
+    toEnterRoom(event){
+
+         console.log(event)
+         let roomInfo=event.currentTarget.dataset.item
+         wepy.$instance.globalData.roomID=roomInfo.roomID
+         console.log("Enter room "+wepy.$instance.globalData.roomID)
+                if(roomInfo.players.length === roomInfo.maxNumbers){
+                    
+                    return;
+                }else if(roomInfo.roomStatus ==="isReady"){
+                     wepy.navigateTo({
+                                    url: 'room'
+                                });
+                }else if(roomInfo.roomStatus ==="isGaming"){
+                    wepy.navigateTo({
+                                    url: 'room'
+                                });
+                }
+            }     
+
+
+
+    
+  }
+</script>

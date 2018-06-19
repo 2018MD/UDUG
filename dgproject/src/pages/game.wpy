@@ -1,0 +1,483 @@
+<style lang="less">
+.container{
+    background: #f5b1aa;
+}
+.canvas {
+  background-color: white;
+  width: 100%;
+}
+
+.blue {
+  width: 100%;
+  height: 350px;
+  max-width: 600px;
+  background: #fff;
+}
+
+.answer_input {
+  /*position: fixed;*/
+  /*bottom: 0px;*/
+  max-width: 600px;
+  border: none;
+  border-bottom: salmon solid 2px;
+  background-color: rgb(255, 255, 255);
+  width: 100%;
+  height: 40px;
+  padding: 10px 15px;
+  outline: none;
+}
+
+.player_list {
+  float: left;
+  width: 16.5%;
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.user_pro {
+  position: relative;
+}
+
+.score {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: -7px;
+  margin-left: 10px;
+  width: 17px;
+  height: 17px;
+  line-height: 17px;
+  text-align: center;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: rgb(241, 94, 102);
+  color: #fff;
+}
+
+.content {
+  position: relative;
+}
+
+.dialog {
+  text-align: center;
+  width: 200px;
+  height: 200px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: -100px;
+  margin-left: -100px;
+  background-color: #f5b1aa;
+  border-radius: 50%;
+  color: #fff;
+}
+
+.dialog p {
+  /*line-height: 200px;*/
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.user_pro .profile {
+  height: 40px;
+  width: 40px;
+  line-height: 40px;
+  font-size: 20px;
+}
+</style>
+<template>
+  <view class="container">
+   
+     
+      <view id="app">
+        <!--<view style="font-size:12px">所有房间信息{{allRoomInfo}}</view>-->
+        <!--<view style="font-size:12px">当前房间信息{{getCurrentRoomInfo}}</view>-->
+        <view class="title text_center">
+            <!--<span class="">现在由<span v-fontcolors>{{getCurrentRoomInfo.drawer}}</span>开始画图</span>-->
+            <view  wx:if="{{isDrawer}}"><text>题目: </text><text>{{topic}}</text></view>
+            <view  wx:if="{{!isDrawer}}"><text>提示:</text> <text>{{prompt}}</text></view>
+        </view>
+        <view class="content">
+            <view class="dialog"  wx:if="{{showAnswer}}">
+                <text>答案:{{getAnswer}}</text>
+            </view>
+            <canvas class="canvas"  canvas-id="firstCanvas" 
+            bindtouchstart="ontouchstart"
+            bindtouchmove="ontouchmove"
+            bindtouchend="ontouchend"
+            disable-scroll="false"
+            wx:if="{{isDrawer}}" width="600" height="350">
+            </canvas>
+            <view class="blue"  wx:if="{{!isDrawer}}" >
+                <img class="getCanvas" src=""/>
+                <canvas canvas-id="guestCanvas" width="600" height="350" wx:if="{{!isDrawer}}"></canvas>
+            </view>
+        </view>
+        <input type="text" wx:if="{{!isDrawer}}" bindconfirm="sendAnswer" 
+         class="answer_input" bindinput="bindKeyInput" placeholder="在此输入答案.."/>
+        <ul class="player_ul clearfix">
+            <li wx:for="{{[1,2,3,4,5,6]}}" class="player_list" wx:if="{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">
+                <view class="user_pro">
+                    <view class="profile" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</view>
+                    <view class="score">{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['score']}}</view>
+                </view>
+                <text  wx:if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</text>
+                <text>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</text>
+            </li>
+        </ul>
+        
+    </view>
+ </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { connect } from 'wepy-redux'
+  import Panel from '@/components/panel' // alias example
+  import Counter from 'counter' // alias example
+  import List from '../components/list' // aliasFields example
+  import moduleA from 'module-a' // aliasFields ignore module example
+  import Group from '../components/group'
+  import Toast from 'wepy-com-toast'
+  import testMixin from '../mixins/test'
+  let socket = null;
+
+
+
+  console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: 'game'
+    }
+    components = {
+    }
+
+    mixins = [testMixin]
+
+    data = {
+                mySelf: '',
+                getCurrentRoomInfo: {
+                    "000": [{
+                        player: '',
+                    }],
+                    roomID: "000",
+                    owner: 'null',
+                    drawer: 'null',
+                    drawerIP: 'null',
+                    roomStatus: 'null',
+                },
+                canvasSrc: '',
+                input_value: '',
+                topic: '',
+                prompt: '',
+                roomIndex: '',
+                showAnswer: false,
+                getAnswer: '',
+                pensize:3,
+                pencolor:'black',
+                startX:0,
+                startY:0,
+                
+      
+      
+     
+           
+    }
+
+    computed = {
+        allRoomInfo () {
+        return wepy.$instance.globalData.allRoomInfo
+        },
+        isDrawer() {
+                    if (this.mySelf) {
+                        if (this.mySelf === this.getCurrentRoomInfo.drawer) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+    }
+
+    watch = {
+      getCurrentRoomInfo (room, oldValue) {
+            console.log(` value: ${oldValue} -> ${room}`)
+                
+                if (room.drawer != this.mySelf) {
+                var drawCanvas = wx.createSelectorQuery().select(".canvas");
+                drawCanvas.height = 350;
+            } else {
+                var getCanvas = wx.createSelectorQuery().select(".getCanvas");
+                getCanvas.src = "";
+            }
+            this.roomIndex = this.allRoomInfo.findIndex((room, index) => { // 获取当前房间的索引
+                return wepy.$instance.globalData.roomID in room;
+            })
+            if (room.roomStatus === "isReady") {
+                // this.$router.replace({ name: "room",params:{roomID:this.$route.params.roomID}});
+                wepy.redirectTo({
+                                    url: 'index'
+                                });
+                return;
+            }
+            if (!wepy.$instance.globalData.userInfo.username) {
+                wx.showToast({
+                                    title: '没有在首页注册昵称哦',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                wepy.redirectTo({
+                                    url: 'index'
+                                });
+                return;
+            }
+            var userIndex = room[room.roomID].findIndex(key => {//判断当前房间是否有该用户
+                 return key.player===wepy.$instance.globalData.userInfo.username  ;
+            })
+            if (userIndex < 0) {
+                wx.showToast({
+                                    title: '游戏正在进行不能进入',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                wepy.redirectTo({
+                                    url: 'index'
+                                });
+            }
+      }
+  }
+
+    
+    methods={
+        
+            
+
+            bindKeyInput:function(e) {
+                    this.input_value= e.detail.value
+                    
+                    },
+            
+            ontouchstart:function(e){
+                    
+                    this.startX = e.changedTouches[0].x
+                    this.startY = e.changedTouches[0].y
+                    this.context = wx.createContext()
+
+                    this.context.setStrokeStyle(this.pencolor)
+                    this.context.setLineWidth(this.pensize)
+                    this.context.setLineCap('round') // 让线条圆润
+                    this.context.beginPath()
+
+
+                    }, 
+            ontouchmove:function(e){
+                    
+                    var startX=e.changedTouches[0].x;
+                    var startY=e.changedTouches[0].y;
+                    
+                    this.context.moveTo(this.startX,this.startY);
+                    this.context.lineTo(startX,startY);
+                    this.context.stroke();
+                    console.log(startX)
+                    console.log(startY)
+                    this.startY=startY;
+                    this.startX=startX;
+
+                    let actions = this.context.getActions();
+                    wx.drawCanvas({
+                        canvasId: 'firstCanvas',
+                        reserve: true,
+                        actions: actions
+                    })
+
+                    // socket.emit('onDraw', { actions: res.tempFilePath, y:,roomIndex: that.roomIndex });
+                    let roomIndex = this.roomIndex;
+                    socket.emit('onDraw', { actions: actions, roomIndex: roomIndex});
+
+                    },
+            ontouchend:function(e){
+                let    that=this
+                wx.canvasToTempFilePath({
+                                        x: 0,
+                                        y: 0,
+                                        width: 200,
+                                        height: 200,
+                                        
+                                        canvasId: 'firstCanvas',
+                                        success: function(res) {
+                                            console.log("canvas dataurl",res.tempFilePath)
+                                            socket.emit('onDraw', { url: res.tempFilePath, roomIndex: that.roomIndex });
+
+                                        } 
+                                        })
+
+            }  
+                 
+
+     
+     
+  
+    }
+
+
+
+    onLoad() {
+        socket = wepy.$instance.globalData.ss;
+        let that=this;
+        this.mySelf=wepy.$instance.globalData.userInfo.username;
+
+             socket.on('updateAllroomInfo', allRoomInfo => { // 随时监听是否有房间变动
+                allRoomInfo = JSON.parse(allRoomInfo);
+                if (allRoomInfo.length === 0) {
+                    wepy.redirectTo({
+                                    url: 'index'
+                                });
+                    return
+                }
+               
+                wepy.$instance.globalData.allRoomInfo=allRoomInfo;
+                // console.log('当前allRoomInfo信息:')
+                // console.log(allRoomInfo);
+                // console.log('当前route.roomID信息:')
+                console.log(wepy.$instance.globalData.roomID);
+                that.getCurrentRoomInfo = allRoomInfo.find(room => { // 获取当前房间信息 是否存在
+                    return wepy.$instance.globalData.roomID in room;
+                })
+
+                that.topic=that.getCurrentRoomInfo.topic;
+                that.prompt=that.getCurrentRoomInfo.prompt;
+
+
+                if (!that.getCurrentRoomInfo) {// 此处判断 当房间已经不存在的时候
+                    console.log('房间信息更新后,当前房间已经不存在了');
+                    wepy.redirectTo({
+                                    url: 'index'
+                                });
+                    return
+                }
+                // console.log('触发了beforecreate');
+
+                 that.$apply();
+            });
+            socket.on('sendTopic', topicMsg => {
+                console.log('收到了sendTopic消息')
+                console.log(topicMsg);
+                that.topic = topicMsg.topic;
+                that.prompt = topicMsg.prompt;
+                that.$apply();
+            })
+      
+    }
+
+
+    onReady(){
+            let that=this;    
+            socket.emit('updateAllroomInfo');
+            console.log('room页的mounted执行了');
+            // var drawCanvas =wx.createSelectorQuery().select(".canvas");
+            var getCanvas = wx.createSelectorQuery().select(".getCanvas");
+            // var getContent = wx.createSelectorQuery().select(".content");
+            // // var canvas_context = drawCanvas.getContext('2d');
+            // var canvas_context = wx.createCanvasContext('firstCanvas');
+            // drawCanvas.addEventListener('touchmove', function (e) { e.preventDefault() }, false); //阻止移动端在canvas中下拉
+
+
+            // drawCanvas.ontouchstart = (ev) => {// 移动端
+            //     var event = ev.touches[0];
+            //     canvas_context.moveTo(event.clientX - getContent.offsetLeft, event.clientY - getContent.offsetTop + document.body.scrollTop);
+            //     document.ontouchmove = (ev) => {
+            //         var event = ev.touches[0];
+            //         canvas_context.lineTo(event.clientX - getContent.offsetLeft, event.clientY - getContent.offsetTop + document.body.scrollTop);
+            //         canvas_context.stroke();
+            //         socket.emit('onDraw', { url: drawCanvas.toDataURL('image/jpg', 1), roomIndex: this.roomIndex });//触发onDraw 事件
+            wx.canvasToTempFilePath({
+                                        x: 0,
+                                        y: 0,
+                                        width: 200,
+                                        height: 200,
+                                        
+                                        canvasId: 'firstCanvas',
+                                        success: function(res) {
+                                            console.log("canvas dataurl",res.tempFilePath)
+                                            socket.emit('onDraw', { url: res.tempFilePath, roomIndex: that.roomIndex });
+
+                                        } 
+                                        })
+            //     };
+            //     document.ontouchend = () => {
+            //         document.ontouchmove = null;
+            //     };
+            // };
+
+
+            // socket.on('onDraw', url => {
+            //     console.log('接受到了onDraw事件');
+            //     getCanvas.src = url;
+            //     console.log(getCanvas);
+            //     that.$apply();
+            // });
+            socket.on('exchangeActions', e => {
+                wx.drawCanvas({
+                        canvasId: 'guestCanvas',
+                        reserve: true,
+                        actions: e
+                    })
+            })
+            socket.on('rpsSendAnswer', msg => {
+                // console.log('接收到了消息');
+                console.log(msg);
+            })
+            socket.on('getAnswer', topic => {
+                that.getAnswer = topic;
+                that.showAnswer = true;
+                var getAnswer = setTimeout(() => {
+                    that.showAnswer = false;
+                    clearTimeout(getAnswer);
+                }, 3000);
+
+                that.$apply();
+            })
+
+    }
+    
+    onUnload(){
+        console.log("game onUnload")
+        console.log( wepy.$instance.globalData.roomID)
+        console.log('准备触发exitRoom事件')
+        socket.removeListener('rpsSendAnswer');//退出房间后 移除接受消息的监听事件
+        socket.removeListener('rpsBeginGame');//退出房间后 移除接收rpsBgeingame事件
+        socket.emit('exitRoom', wepy.$instance.globalData.roomID); // 后续记得更改 执行其他功能
+
+    }
+    sendAnswer() {
+                if (this.input_value.trim()) {
+                    if (this.input_value.length <= 20) {
+                        socket.emit('sendAnswer', { answer: this.input_value, roomIndex: this.roomIndex });
+                        this.input_value = "";
+                    } else {
+                        wx.showToast({
+                                    title: '字数不能超过20',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                    };
+                };
+
+            }
+    
+
+      
+     
+
+
+    
+  }
+</script>

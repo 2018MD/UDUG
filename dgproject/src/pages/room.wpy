@@ -1,0 +1,193 @@
+<template>
+    <view id="app" class="wait_room bg_wood">
+        <view class="title text_center" >
+            <span class="">你画我猜</span>
+        </view>
+        <!--This is Rooms {{ $route.params }}-->
+        <!--<view style="font-size:12px;">当前房间信息: {{ getCurrentRoomInfo }}</view>-->
+        <!--<view style="font-size:12px;">所有房间息: {{  allRoomInfo }}</view>-->
+        <view class="userContent">
+            <view class="self_info">你是<p class="profile">{{mySelf}}</p></view>
+            <ul class="player_ul clearfix">
+                <li wx:for="{{[1,2,3,4,5,6]}}"  wx:for-index="index" class="player_list">
+                    <span class="profile" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</span>
+                    <p wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</p>
+                    <p>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</p>
+
+                    <view>位置</view>
+                </li>
+            </ul>
+            <view wx-if="{{getCurrentRoomInfo.owner === mySelf}}" @tap="toBeginGame"  class="begin"> <label>开始游戏!</label> </view>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import { connect } from 'wepy-redux';
+import Panel from '@/components/panel'; // alias example
+import Counter from 'counter'; // alias example
+import List from '../components/list'; // aliasFields example
+import moduleA from 'module-a'; // aliasFields ignore module example
+import Group from '../components/group';
+import Toast from 'wepy-com-toast';
+import testMixin from '../mixins/test';
+   let socket = null;
+
+console.log('moduleA ignored: ', moduleA); // => moduleA ignored: {}
+
+export default class Index extends wepy.page {
+  config = {
+    navigationBarTitleText: 'grome'
+  };
+  components = {};
+
+  mixins = [testMixin];
+
+  data = {
+    getCurrentRoomInfo: {
+      '000': [
+        {
+          player: ''
+        }
+      ],
+      roomID: '000',
+      owner: 'null'
+    },
+    mySelf: '',
+    allRoomInfos: []
+  };
+  computed = {
+    allRoomInfo() {
+      return wepy.$instance.globalData.allRoomInfo;
+    },
+
+    getusername() {
+      if (!wepy.$instance.globalData.userInfo.username) {
+        return '';
+      }
+      return wepy.$instance.globalData.userInfo.username;
+    },
+    getStatus(roomStatus) {
+      switch (roomStatus) {
+        case 'isReady':
+          return '等待中..';
+          break;
+        case 'isGaming':
+          return '游戏中';
+          break;
+        default:
+          return '未知状态..';
+          break;
+      }
+    }
+  };
+
+  onUnload() {
+    console.log('room onUnload');
+    console.log(wepy.$instance.globalData.roomID);
+
+    socket.emit('exitRoom', wepy.$instance.globalData.roomID); // 后续记得更改 执行其他功能
+  }
+
+  onLoad() {
+
+      socket = wepy.$instance.globalData.ss;
+    let that = this;
+
+    socket.on('updateAllroomInfo', allRoomInfo => {
+      // 随时监听是否有房间变动
+      allRoomInfo = JSON.parse(allRoomInfo);
+      wepy.$instance.globalData.allRoomInfo = allRoomInfo;
+      that.allRoomInfos = allRoomInfo;
+      console.log(allRoomInfo);
+
+      that.getCurrentRoomInfo = allRoomInfo.find(function(value,index,arr) {
+        return (value.roomID = wepy.$instance.globalData.roomID);
+      });
+
+      // console.log(that.getCurrentRoomInfo)
+
+      that.$apply();
+    });
+
+    // [1, 5, 10, 15].findIndex(function(value, index, arr) {
+    //     return value > 9;
+    //     }) // 2
+
+    var roomIndex = this.allRoomInfo.findIndex(function(value, index, arr) {
+      return (value.roomID = wepy.$instance.globalData.roomID);
+    });
+
+    var newUser = {};
+    newUser.player = wepy.$instance.globalData.userInfo.username;
+    newUser.roomIndex = roomIndex;
+    socket.emit('updateNewUser', JSON.stringify(newUser));
+
+    this.mySelf = wepy.$instance.globalData.userInfo.username;
+    that.$apply();
+
+    socket.removeListener('rpsBeginGame'); //执行前 先移除之前的监听事件
+    socket.on('rpsBeginGame', () => {
+      var roomIndex = this.allRoomInfo.findIndex((room, index) => {
+        // 获取当前房间的索引
+        return wepy.$instance.globalData.roomID in room;
+      });
+      socket.emit('gamePlaying', roomIndex);
+    });
+    socket.on('toEnterGame', () => {
+      wepy.navigateTo({
+        url: 'game'
+      });
+    });
+  }
+
+  toBeginGame() {
+    console.log('开启了toBeginGame方法');
+    socket.emit('beginGame', wepy.$instance.globalData.roomID);
+  }
+}
+</script>
+<style>
+.text_center {
+  text-align: center;
+}
+.player_ul {
+  display: -webkit-flex;
+  display: flex;
+  text-align: center;
+}
+.player_list {
+  float: left;
+  width: 33.33%;
+  padding-top: 20px;
+}
+.begin {
+  position: relative;
+  text-align: center;
+  margin-bottom: 10px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: rgb(216, 17, 91);
+  color: #fff;
+  margin: 20px auto;
+  cursor: pointer;
+}
+.begin:hover {
+  box-shadow: #ba2636 0px 0px 10px;
+}
+.self_info {
+  padding-top: 20px;
+}
+.begin label {
+  width: 50px;
+  height: 50px;
+  /*display: inline-block;*/
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -25px;
+  margin-top: -25px;
+  cursor: pointer;
+}
+</style>

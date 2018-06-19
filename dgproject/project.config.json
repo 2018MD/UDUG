@@ -1,0 +1,15 @@
+{
+	"description": "vue-like-dg",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wxfbe856ed425a2499",
+	"projectname": "dgproject",
+	"miniprogramRoot": "./dist",
+	"condition": {}
+}

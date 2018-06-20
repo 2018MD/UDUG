@@ -14,28 +14,94 @@
   .userinfo-nickname {
     color: #aaa;
   }
+  .container{
+      height:1234rpx;
+       
+      background-color: #E0EEE0;
+  }
+  .profile{
+      width:60px;
+      height:60px;
+      background-color: #3CB371;
+      border-radius: 50%;
+      text-align: center;
+      color:white;
+      line-height: 59px;
+      font-size:30px;
+    //   border:dashed 5px #7FFFAA;
+    border:solid 5px white;
+  }
+    .profileX{
+    width:60px;
+      height:60px;
+      background-color: grey;
+      border-radius: 50%;
+      text-align: center;
+      color:white;
+      line-height: 59px;
+      font-size:30px;
+    
+    border:solid 5px white;
+
+  }
+  .getname{
+       margin:12px 0px 0px 6px;
+       display: flex;
+       flex-direction: row;
+       
+  }
   body{
    
         /*font-size: 20px;*/
     }
     .title{
         padding:8px 10px;
+        border:9px dashed white;
+        margin:10px;
+        border-radius: 50px;
+        display: flex;
+        flex-direction: row;
+
     }
     .user_input {
+        padding:3px 0px 3px 7px;
+        font-size:16px;
         display: inline-block;
-        width: 120px;
+        width: 100px;
+        background-color:white;
+        border:solid 2px #00a3af;
+        
+        
+
     }
     .modify {
-        font-size: 13px;
+        font-size: 16px;
         color: white;
-        border-radius: 2px;
-        padding: 3px 5px;
+        border-radius: 0 9px 9px 0;
+        padding: 5px 6px;
         background-color: #00a3af;
+        display: inline-block;
+        border:solid 2px white;
+        height:24px;
+    }
+    .CreateRoom{
+        font-size: 14px;
+        background-color: #E1FFFF;
+        border-radius: 9px 9px 9px 9px;
+        margin:10px 3px;
+        height:26px;
+        padding:8px 6px 5px 6px;
+        border:solid 2px #008080;
+        color:#008080;
     }
     .room_status{
-        color:#666;
+        color:#444;
         text-align:center;
-        padding-top:10px;
+        padding-top:3px;
+        font-size: 13px;
+    }
+    .nump{
+        border:solid 2px #008080;
     }
     .room_list{
         display: -webkit-flex;
@@ -46,43 +112,90 @@
         cursor:pointer;
     }
     .list_content{
-        display: -webkit-flex;
+        
         display: flex;
-        flex-direction: column;
-        justify-content: space-around;
+        flex-direction: row;
+        margin:1px 1px 1px 6px;
+        
     }
     .status{
         float:right;
     }
+    .numlabel{
+       
+       
+    }
+    .fz{
+        color:rgb(4, 56, 13);
+        font-size:18px;
+        margin:0px 0px 6px 3px;
+    }
+    .fjrs{
+        color:rgb(117, 75, 75);
+        font-size:15px;
+    }
+.roomIn{
+    font-size: 14px;
+        background-color: #E1FFFF;
+        border-radius: 9px 9px 9px 9px;
+        margin:10px 13px;
+        height:26px;
+        padding:8px 6px 5px 6px;
+        border:solid 2px #008080;
+        color:#008080;
+
+}
+.allroomlist{
+    display:flex;
+    margin:0 auto;
+    align-items: center;
+    justify-content: center;
+    flex-direction:column;
+
+}
 </style>
 <template>
   <view class="container">
    
   
-    <view id="app" class="bg_wood">
-        <view class="title" v-colors>
-            <view><i class="iconfont icon-magnifier"></i>查询房间</view>
-            <view>你画我猜</view>
-            <label @tap="toCreateRoom">创建房间</label>
-        </view>
-        <view class="user">
-            <span class="profile"  >{{getusername}}</span>
-            <input bindinput="bindKeyInput" bindconfirm="modifyUser" class="user_input"  name="username" placeholder="请输入一个用户名"/>
+    <view  >
+        <view class="title" >
+            
+            
+        
+            <view class="profile"  >{{getusername[0]}}</view>
+
+            <view class="getname">
+            <input bindinput="bindKeyInput" bindconfirm="modifyUser" class="user_input"  name="username" placeholder="报上大名"/>
             <label class="modify" @tap="modifyUser">修改</label>
+            </view>
+
+            <view class="CreateRoom"  @tap="toCreateRoom">创建房间</view>
         </view>
-        <view class="room_status" wx-if="{{allRoomInfos.length===0}}">并没有房间,请点击右上角创建房间</view>
-        <view class="room_status" wx-if="{{allRoomInfos.length>0}}">当前房间列表 : </view>
-        <ul>
+
+        <view class="room_status" wx-if="{{allRoomInfos.length===0}}"><icon type="info" size=13></icon>并没有房间,请点击右上角创建房间</view>
+        <view class="room_status" wx-if="{{allRoomInfos.length>0}}"><icon type="info" size=13></icon>当前房间列表 : </view>
+        <view class="allroomlist">
             <li wx:for="{{allRoomInfos}}" wx:for-item="roomInfo" wx:for-index="index"  class="room_list" @tap="toEnterRoom" data-item="{{roomInfo}}">
-                <span class="profile"  >{{roomInfo.owner[0]}}</span>
+                <view class="profile"  >{{roomInfo.owner[0]}}</view>
                 <view class="list_content">
-                    <label class="roomIn">进入房间 房主:{{roomInfo.owner}} </label>
-                    <p>房间人数:{{roomInfo[roomInfo.roomID].length}}/{{roomInfo.maxNumbers}}
-                        <span class="status">{{roomInfo.roomStatus}}</span>
-                    </p>
+                    <view class="lc">
+                    <view class="fz">房主:{{roomInfo.owner}} </view>
+                    
+                    <view class="numlabel">
+                    
+                        
+                    <progress class="nump" active percent="{{roomInfo[roomInfo.roomID].length*50/3}}"></progress>
+                    <text class="fjrs">房间人数:{{roomInfo[roomInfo.roomID].length}}/{{roomInfo.maxNumbers}}</text>
+                    </view>
+
+                    
+                    </view>
+                    <!-- <text class="status">{{roomInfo.roomStatus}}</text> -->
+                    <label class="roomIn">进入房间</label> 
                 </view>            
             </li>
-        </ul>
+        </view>
     </view>
 
   </view>
@@ -106,7 +219,7 @@
 
   export default class Index extends wepy.page {
     config = {
-      navigationBarTitleText: 'home'
+      navigationBarTitleText: '你画俺猜'
     }
     components = {
     }
@@ -127,7 +240,7 @@
       },
 
       getusername(){
-        if (!wepy.$instance.globalData.userInfo.username) {return ''}
+        if (!wepy.$instance.globalData.userInfo.username) {return '?'}
         return wepy.$instance.globalData.userInfo.username
       },
       getStatus(roomStatus){
@@ -161,6 +274,7 @@
     onLoad() {
       this.fu = wepy.$instance.globalData.fuck;
       socket = wepy.$instance.globalData.ss;
+      wepy.$instance.globalData.username="我"
       console.log(socket);
       let that = this;
       socket.on('updateAllroomInfo',allRoomInfo=>{ // 随时监听是否有房间变动
@@ -222,10 +336,27 @@
                
             }
     toEnterRoom(event){
-
+        if (!wepy.$instance.globalData.userInfo.username) {
+                     wx.showToast({
+                                    title: '无名之辈不可参与游戏哦',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                    return;
+                }
          console.log(event)
          let roomInfo=event.currentTarget.dataset.item
          wepy.$instance.globalData.roomID=roomInfo.roomID
+         if(roomInfo.roomStatus=="isGaming"){
+              wx.showToast({
+                                    title: '该房间正在进行游戏',
+                                    icon: 'none',
+                                    duration: 2000,
+                                    mask:true
+                                })
+                    return;
+         }
          console.log("Enter room "+wepy.$instance.globalData.roomID)
                 if(roomInfo.players.length === roomInfo.maxNumbers){
                     

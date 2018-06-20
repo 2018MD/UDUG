@@ -1,22 +1,129 @@
+<style>
+page {
+  background: #E0EEE0;
+}
+.container{
+       
+      background-color: #E0EEE0;
+}
+.text_center {
+  text-align: center;
+}
+.profile{
+      width:60px;
+      height:60px;
+      background-color: #3CB371;
+      border-radius: 50%;
+      text-align: center;
+      color:white;
+      line-height: 59px;
+      font-size:30px;
+    
+    border:solid 5px white;
+  }
+  .profileX{
+    width:60px;
+      height:60px;
+      background-color: grey;
+      border-radius: 50%;
+      text-align: center;
+      color:white;
+      line-height: 59px;
+      font-size:30px;
+    
+    border:solid 5px white;
+
+  }
+
+
+.begin {
+  position: relative;
+  text-align: center;
+  margin-bottom: 10px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: rgb(216, 17, 91);
+  color: #fff;
+  margin: 20px auto;
+  cursor: pointer;
+}
+.player_ul{
+  display: flex;
+  flex-direction: row;
+}
+.userContent{
+  display:flex;
+    margin:0 auto;
+    align-items: center;
+    justify-content: center;
+    flex-direction:column;
+}
+
+
+.begin label {
+  width: 50px;
+  height: 50px;
+  /*display: inline-block;*/
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -25px;
+  margin-top: -25px;
+  cursor: pointer;
+}
+.fangjian{
+  margin: 20px 100px;
+  padding:8px 10px;
+  border:9px dashed white;
+        color:white;
+        border-radius: 50px;
+}
+.player_list{
+  text-align: center;
+  color:#00a3af;
+  margin:3px;
+  font-size:13px;
+}
+.tx{
+  color:#333;
+}
+</style>
 <template>
-    <view id="app" class="wait_room bg_wood">
+    <view  class="container">
         <view class="title text_center" >
-            <span class="">你画我猜</span>
+            <view class="fangjian">当前房间豪杰</view>
         </view>
         <!--This is Rooms {{ $route.params }}-->
         <!--<view style="font-size:12px;">当前房间信息: {{ getCurrentRoomInfo }}</view>-->
         <!--<view style="font-size:12px;">所有房间息: {{  allRoomInfo }}</view>-->
         <view class="userContent">
-            <view class="self_info">你是<p class="profile">{{mySelf}}</p></view>
-            <ul class="player_ul clearfix">
-                <li wx:for="{{[1,2,3,4,5,6]}}"  wx:for-index="index" class="player_list">
-                    <span class="profile" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</span>
-                    <p wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</p>
-                    <p>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</p>
+            <!-- <view class="self_info">你是<p class="profile">{{mySelf}}</p></view> -->
+            <view class="player_ul clearfix">
+                <view wx:for="{{[1,2,3]}}"  wx:for-index="index" class="player_list">
+                    <view class="profile"  wx-if="{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player'][0]}}</view>
+                   
+                    <text>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</text>
 
-                    <view>位置</view>
-                </li>
-            </ul>
+                    <view class="profileX"  wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}">{{"?"}}</view>
+                    <view class="tx" wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</view>
+
+                    
+                </view>
+            </view>
+            <view class="player_ul clearfix">
+
+                <view wx:for="{{[1,2,3]}}"  wx:for-index="index" class="player_list">
+                    <view class="profile"  wx-if="{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index+3]['player']}}" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index+3]['player'][0]}}</view>
+                   
+                    <text>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index+3]['player']}}</text>
+
+                    <view class="profileX"  wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index+3]['player']}}">{{"?"}}</view>
+                    <view  class="tx"  wx-if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index+3]}}">{{"等待加入"}}</view>
+
+                    
+                </view>
+            </view>
             <view wx-if="{{getCurrentRoomInfo.owner === mySelf}}" @tap="toBeginGame"  class="begin"> <label>开始游戏!</label> </view>
         </view>
     </view>
@@ -37,7 +144,7 @@ console.log('moduleA ignored: ', moduleA); // => moduleA ignored: {}
 
 export default class Room extends wepy.page {
   config = {
-    navigationBarTitleText: 'grome'
+    navigationBarTitleText: '蓄势待猜'
   };
   components = {};
 
@@ -154,47 +261,3 @@ export default class Room extends wepy.page {
   }
 }
 </script>
-<style>
-.text_center {
-  text-align: center;
-}
-.player_ul {
-  display: -webkit-flex;
-  display: flex;
-  text-align: center;
-}
-.player_list {
-  float: left;
-  width: 33.33%;
-  padding-top: 20px;
-}
-.begin {
-  position: relative;
-  text-align: center;
-  margin-bottom: 10px;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: rgb(216, 17, 91);
-  color: #fff;
-  margin: 20px auto;
-  cursor: pointer;
-}
-.begin:hover {
-  box-shadow: #ba2636 0px 0px 10px;
-}
-.self_info {
-  padding-top: 20px;
-}
-.begin label {
-  width: 50px;
-  height: 50px;
-  /*display: inline-block;*/
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin-left: -25px;
-  margin-top: -25px;
-  cursor: pointer;
-}
-</style>

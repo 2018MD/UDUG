@@ -1,15 +1,18 @@
 <style lang="less">
 .container{
-    background: #f5b1aa;
+    background: #E0EEE0;
+    height: 105vh;
 }
 .canvas {
   background-color: white;
-  width: 100%;
+  // width: 100%;
+  height: 76vh;
+  width: 85vw;
 }
 
 .blue {
   width: 100%;
-  height: 350px;
+  height: 73vh;
   max-width: 600px;
   background: #fff;
 }
@@ -21,7 +24,8 @@
   border: none;
   border-bottom: salmon solid 2px;
   background-color: rgb(255, 255, 255);
-  width: 100%;
+  // width: 100%;
+  margin-top: 10px;
   height: 40px;
   padding: 10px 15px;
   outline: none;
@@ -43,7 +47,7 @@
   left: 50%;
   top: 50%;
   margin-top: -7px;
-  margin-left: 10px;
+  margin-left: 10rpx;
   width: 17px;
   height: 17px;
   line-height: 17px;
@@ -67,9 +71,12 @@
   top: 50%;
   margin-top: -100px;
   margin-left: -100px;
-  background-color: #f5b1aa;
+  background-color: #31b7ec;
   border-radius: 50%;
   color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .dialog p {
@@ -80,23 +87,36 @@
   left: 50%;
   top: 50%;
   transform: translateX(-50%) translateY(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .user_pro .profile {
+  margin-top: 10px;
   height: 40px;
   width: 40px;
   line-height: 40px;
   font-size: 20px;
+  background-color: darkseagreen;
+  border-radius: 50%;
+  display: inline-block;
+  text-align: center;
+}
+
+.username {
+  text-align: center;
+  width: 40px;
 }
 </style>
 <template>
   <view class="container">
-   
-     
+
+
       <view id="app">
         <!--<view style="font-size:12px">所有房间信息{{allRoomInfo}}</view>-->
         <!--<view style="font-size:12px">当前房间信息{{getCurrentRoomInfo}}</view>-->
-        <view class="title text_center">
+        <view class="title text_center" style="margin-bottom: 10rpx;text-align: center; border: 3px outset #00FF44; margin-top: 10px">
             <!--<span class="">现在由<span v-fontcolors>{{getCurrentRoomInfo.drawer}}</span>开始画图</span>-->
             <view  wx:if="{{isDrawer}}"><text>题目: </text><text>{{topic}}</text></view>
             <view  wx:if="{{!isDrawer}}"><text>提示:</text> <text>{{prompt}}</text></view>
@@ -105,7 +125,7 @@
             <view class="dialog"  wx:if="{{showAnswer}}">
                 <text>答案:{{getAnswer}}</text>
             </view>
-            <canvas class="canvas"  canvas-id="firstCanvas" 
+            <canvas class="canvas"  canvas-id="firstCanvas"
             bindtouchstart="ontouchstart"
             bindtouchmove="ontouchmove"
             bindtouchend="ontouchend"
@@ -114,24 +134,24 @@
             </canvas>
             <view class="blue"  wx:if="{{!isDrawer}}" >
                 <img class="getCanvas" src=""/>
-                <canvas canvas-id="guestCanvas" width="600" height="350" wx:if="{{!isDrawer}}"></canvas>
+                <canvas style="height: 76vh; width: 85vw;" canvas-id="guestCanvas" disable-scroll="false" wx:if="{{!isDrawer}}"></canvas>
             </view>
         </view>
-        <input type="text" wx:if="{{!isDrawer}}" bindconfirm="sendAnswer" 
-         class="answer_input" bindinput="bindKeyInput" 
+        <input type="text" wx:if="{{!isDrawer}}" bindconfirm="sendAnswer"
+         class="answer_input" bindinput="bindKeyInput"
          value="{{vinput}}"
          placeholder="在此输入答案.."/>
         <ul class="player_ul clearfix">
             <li wx:for="{{[1,2,3,4,5,6]}}" class="player_list" wx:if="{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">
                 <view class="user_pro">
-                    <view class="profile" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</view>
+                    <view class="profile" >{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player'][0]}}</view>
                     <view class="score">{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['score']}}</view>
+                    <text  wx:if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</text>
+                    <view class="username">{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</view>
                 </view>
-                <text  wx:if="{{!getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">{{"等待加入"}}</text>
-                <text>{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]['player']}}</text>
             </li>
         </ul>
-        
+
     </view>
  </view>
 </template>
@@ -185,10 +205,10 @@
                 startX:0,
                 startY:0,
                 vinput:'',
-      
-      
-     
-           
+
+
+
+
     }
 
     computed = {
@@ -209,7 +229,7 @@
     watch = {
       getCurrentRoomInfo (room, oldValue) {
             console.log(` value: ${oldValue} -> ${room}`)
-                
+
                 if (room.drawer != this.mySelf) {
                 var drawCanvas = wx.createSelectorQuery().select(".canvas");
                 drawCanvas.height = 350;
@@ -256,18 +276,18 @@
       }
   }
 
-    
+
     methods={
-        
-            
+
+
 
             bindKeyInput:function(e) {
                     this.input_value= e.detail.value
-                    
+
                     },
-            
+
             ontouchstart:function(e){
-                    
+
                     this.startX = e.changedTouches[0].x
                     this.startY = e.changedTouches[0].y
                     this.context = wx.createContext()
@@ -278,12 +298,12 @@
                     this.context.beginPath()
 
 
-                    }, 
+                    },
             ontouchmove:function(e){
-                    
+
                     var startX=e.changedTouches[0].x;
                     var startY=e.changedTouches[0].y;
-                    
+
                     this.context.moveTo(this.startX,this.startY);
                     this.context.lineTo(startX,startY);
                     this.context.stroke();
@@ -311,21 +331,21 @@
                                         y: 0,
                                         width: 400,
                                         height: 600,
-                                        
+
                                         canvasId: 'firstCanvas',
                                         success: function(res) {
                                             console.log("canvas dataurl",res.tempFilePath)
                                             socket.emit('onDraw', { url: res.tempFilePath, roomIndex: that.roomIndex });
 
-                                        } 
+                                        }
                                         })
 
-            }  
-                 
+            }
 
-     
-     
-  
+
+
+
+
     }
 
 
@@ -343,7 +363,7 @@
                                 });
                     return
                 }
-               
+
                 wepy.$instance.globalData.allRoomInfo=allRoomInfo;
                 // console.log('当前allRoomInfo信息:')
                 // console.log(allRoomInfo);
@@ -375,12 +395,12 @@
                 that.prompt = topicMsg.prompt;
                 that.$apply();
             })
-      
+
     }
 
 
     onReady(){
-            let that=this;    
+            let that=this;
             socket.emit('updateAllroomInfo');
             console.log('room页的mounted执行了');
             // var drawCanvas =wx.createSelectorQuery().select(".canvas");
@@ -404,13 +424,13 @@
                                         y: 0,
                                         width: 200,
                                         height: 200,
-                                        
+
                                         canvasId: 'firstCanvas',
                                         success: function(res) {
                                             console.log("canvas dataurl",res.tempFilePath)
                                             socket.emit('onDraw', { url: res.tempFilePath, roomIndex: that.roomIndex });
 
-                                        } 
+                                        }
                                         })
             //     };
             //     document.ontouchend = () => {
@@ -467,7 +487,7 @@
             })
 
     }
-    
+
     onUnload(){
         console.log("game onUnload")
         console.log( wepy.$instance.globalData.roomID)
@@ -480,10 +500,10 @@
     sendAnswer() {
                 if (this.input_value.trim()) {
                     if (this.input_value.length <= 20) {
-                        // console.log("fucj")                         
+                        // console.log("fucj")
                         socket.emit('sendAnswer', { answer: this.input_value, roomIndex: this.roomIndex });
-                        
-                        
+
+
                         let msg={
                                     name:"你",
                                     answermsg:this.input_value==this.topic?"猜对啦！":" : "+this.input_value,
@@ -516,12 +536,12 @@
                 };
 
             }
-    
-
-      
-     
 
 
-    
+
+
+
+
+
   }
 </script>

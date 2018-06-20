@@ -173,8 +173,8 @@
             <view class="CreateRoom"  @tap="toCreateRoom">创建房间</view>
         </view>
 
-        <view class="room_status" wx-if="{{allRoomInfos.length===0}}"><icon type="info" size=13></icon>并没有房间,请点击右上角创建房间</view>
-        <view class="room_status" wx-if="{{allRoomInfos.length>0}}"><icon type="info" size=13></icon>当前房间列表 : </view>
+        <view class="room_status" wx-if="{{allRoomInfos.length===0}}"><icon type="info" size='13'></icon>并没有房间,请点击右上角创建房间</view>
+        <view class="room_status" wx-if="{{allRoomInfos.length>0}}"><icon type="info" size='13'></icon>当前房间列表 : </view>
         <view class="allroomlist">
             <li wx:for="{{allRoomInfos}}" wx:for-item="roomInfo" wx:for-index="index"  class="room_list" @tap="toEnterRoom" data-item="{{roomInfo}}">
                 <view class="profile"  >{{roomInfo.owner[0]}}</view>

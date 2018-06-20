@@ -118,7 +118,9 @@
             </view>
         </view>
         <input type="text" wx:if="{{!isDrawer}}" bindconfirm="sendAnswer" 
-         class="answer_input" bindinput="bindKeyInput" placeholder="在此输入答案.."/>
+         class="answer_input" bindinput="bindKeyInput" 
+         value="{{vinput}}"
+         placeholder="在此输入答案.."/>
         <ul class="player_ul clearfix">
             <li wx:for="{{[1,2,3,4,5,6]}}" class="player_list" wx:if="{{getCurrentRoomInfo[getCurrentRoomInfo.roomID][index]}}">
                 <view class="user_pro">
@@ -150,7 +152,7 @@
 
   console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
 
-  export default class Index extends wepy.page {
+  export default class Game extends wepy.page {
     config = {
       navigationBarTitleText: 'game'
     }
@@ -182,7 +184,7 @@
                 pencolor:'black',
                 startX:0,
                 startY:0,
-                
+                vinput:'',
       
       
      
@@ -220,7 +222,7 @@
             })
             if (room.roomStatus === "isReady") {
                 // this.$router.replace({ name: "room",params:{roomID:this.$route.params.roomID}});
-                wepy.redirectTo({
+                wepy.reLaunch({
                                     url: 'index'
                                 });
                 return;
@@ -232,7 +234,7 @@
                                     duration: 2000,
                                     mask:true
                                 })
-                wepy.redirectTo({
+                wepy.reLaunch({
                                     url: 'index'
                                 });
                 return;
@@ -247,7 +249,7 @@
                                     duration: 2000,
                                     mask:true
                                 })
-                wepy.redirectTo({
+                wepy.reLaunch({
                                     url: 'index'
                                 });
             }
@@ -307,8 +309,8 @@
                 wx.canvasToTempFilePath({
                                         x: 0,
                                         y: 0,
-                                        width: 200,
-                                        height: 200,
+                                        width: 400,
+                                        height: 600,
                                         
                                         canvasId: 'firstCanvas',
                                         success: function(res) {
@@ -336,7 +338,7 @@
              socket.on('updateAllroomInfo', allRoomInfo => { // 随时监听是否有房间变动
                 allRoomInfo = JSON.parse(allRoomInfo);
                 if (allRoomInfo.length === 0) {
-                    wepy.redirectTo({
+                    wepy.reLaunch({
                                     url: 'index'
                                 });
                     return
@@ -357,7 +359,7 @@
 
                 if (!that.getCurrentRoomInfo) {// 此处判断 当房间已经不存在的时候
                     console.log('房间信息更新后,当前房间已经不存在了');
-                    wepy.redirectTo({
+                    wepy.reLaunch({
                                     url: 'index'
                                 });
                     return
@@ -432,7 +434,14 @@
             })
             socket.on('rpsSendAnswer', msg => {
                 // console.log('接收到了消息');
-                console.log(msg);
+                wx.showToast({
+                                    title: msg.name+msg.answermsg,
+                                    icon: 'none',
+                                    duration: 2999,
+                                    mask:true
+                                })
+                console.log(msg.name);
+                console.log(msg.answer);
             })
             socket.on('getAnswer', topic => {
                 that.getAnswer = topic;
@@ -441,6 +450,18 @@
                     that.showAnswer = false;
                     clearTimeout(getAnswer);
                 }, 3000);
+                this.context = wx.createContext()
+                this.context.clearRect(0,0,400,600);
+                wx.drawCanvas({
+                        canvasId: 'firstCanvas',
+                        reserve: false,
+                        actions: this.context.getActions()
+                    })
+                wx.drawCanvas({
+                        canvasId: 'guestCanvas',
+                        reserve: false,
+                        actions: this.context.getActions()
+                    })
 
                 that.$apply();
             })
@@ -459,8 +480,31 @@
     sendAnswer() {
                 if (this.input_value.trim()) {
                     if (this.input_value.length <= 20) {
+                        // console.log("fucj")                         
                         socket.emit('sendAnswer', { answer: this.input_value, roomIndex: this.roomIndex });
+                        
+                        
+                        let msg={
+                                    name:"你",
+                                    answermsg:this.input_value==this.topic?"猜对啦！":" : "+this.input_value,
+                        }
+                        wx.showToast({
+                                    title: msg.name+msg.answermsg,
+                                    icon: 'none',
+                                    duration: 2999,
+                                    mask:true
+                                })
+
+                        this.setData({
+                            input_value: "",
+                            vinput: ""
+
+                        })
+                        this.vinput = "";
                         this.input_value = "";
+                        console.log(this.vinput);
+                        console.log('修改触发')
+                        this.$apply();
                     } else {
                         wx.showToast({
                                     title: '字数不能超过20',

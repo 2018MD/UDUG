@@ -34,6 +34,7 @@ export default class extends wepy.app {
       navigationBarBackgroundColor: '#fff',
       navigationBarTitleText: 'WeChat',
       navigationBarTextStyle: 'black'
+
     }
   }
 
@@ -43,7 +44,8 @@ export default class extends wepy.app {
     allRoomInfo:{},
     isOwner:false,
     roomID:0,
-    ss: null
+    ss: null,
+    pagefather:null,
   }
 
   constructor () {

@@ -35,7 +35,7 @@ import testMixin from '../mixins/test';
 
 console.log('moduleA ignored: ', moduleA); // => moduleA ignored: {}
 
-export default class Index extends wepy.page {
+export default class Room extends wepy.page {
   config = {
     navigationBarTitleText: 'grome'
   };
@@ -85,8 +85,12 @@ export default class Index extends wepy.page {
   onUnload() {
     console.log('room onUnload');
     console.log(wepy.$instance.globalData.roomID);
-
-    socket.emit('exitRoom', wepy.$instance.globalData.roomID); // 后续记得更改 执行其他功能
+    if(wepy.$instance.globalData.pagefather=="home")
+    
+        {
+                socket.emit('exitRoom', wepy.$instance.globalData.roomID); // 后续记得更改 执行其他功能
+        }
+  
   }
 
   onLoad() {
@@ -102,7 +106,7 @@ export default class Index extends wepy.page {
       console.log(allRoomInfo);
 
       that.getCurrentRoomInfo = allRoomInfo.find(function(value,index,arr) {
-        return (value.roomID = wepy.$instance.globalData.roomID);
+        return (value.roomID == wepy.$instance.globalData.roomID);
       });
 
       // console.log(that.getCurrentRoomInfo)
@@ -110,13 +114,15 @@ export default class Index extends wepy.page {
       that.$apply();
     });
 
-    // [1, 5, 10, 15].findIndex(function(value, index, arr) {
-    //     return value > 9;
-    //     }) // 2
+    console.log("roomID",wepy.$instance.globalData.roomID);
+    console.log("allRoomInfo", this.allRoomInfo);
+
 
     var roomIndex = this.allRoomInfo.findIndex(function(value, index, arr) {
-      return (value.roomID = wepy.$instance.globalData.roomID);
+      return (value.roomID == wepy.$instance.globalData.roomID);
     });
+
+    console.log("roomIndex",roomIndex);
 
     var newUser = {};
     newUser.player = wepy.$instance.globalData.userInfo.username;
@@ -135,7 +141,8 @@ export default class Index extends wepy.page {
       socket.emit('gamePlaying', roomIndex);
     });
     socket.on('toEnterGame', () => {
-      wepy.navigateTo({
+      wepy.$instance.globalData.pagefather="game";
+      wx.reLaunch({
         url: 'game'
       });
     });

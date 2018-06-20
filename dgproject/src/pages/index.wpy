@@ -197,6 +197,7 @@
                     room = JSON.parse(room);
                     console.log(room)
                     wepy.$instance.globalData.roomID=room.roomID;
+                    wepy.$instance.globalData.pagefather="home";
                     wepy.navigateTo({
                                     url: 'room'
                                 });
